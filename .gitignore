@@ -1,0 +1,21 @@
+# Node
+node_modules/
+dist/
+.env
+
+# Java
+target/
+*.class
+.mvn/
+mvnw
+mvnw.cmd
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
