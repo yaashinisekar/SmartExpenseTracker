@@ -1,0 +1,16 @@
+{
+  "version": 2,
+  "public": false,
+  "rewrites": [
+    {
+      "source": "/(.*)",
+      "destination": "/frontend/$1"
+    }
+  ],
+  "redirects": [
+    {
+      "source": "/",
+      "destination": "/frontend"
+    }
+  ]
+}

@@ -26,7 +26,11 @@
 ### Steps:
 1. In `api.js`, change the base URL from `http://localhost:8080/api` to use an environment variable:
    `baseURL: import.meta.env.VITE_API_URL || 'http://localhost:8080/api'`
-2. Connect your GitHub repository to Vercel/Netlify.
-3. Set the Framework Preset to **Vite**.
-4. In Environment Variables, set `VITE_API_URL` to your backend URL (e.g. `https://my-backend.railway.app/api`).
-5. Deploy. 
+2. Connect your GitHub repository to Vercel.
+3. **CRITICAL STEP**: In the "Project Settings" (before clicking Deploy):
+   - Find the **Root Directory** field.
+   - Click "Edit" and select the **`frontend`** folder.
+   - This ensures Vercel looks inside the `frontend` folder for your React code.
+4. Set the **Framework Preset** to **Vite**.
+5. In **Environment Variables**, set `VITE_API_BASE_URL` to your backend URL (e.g. `https://my-backend.railway.app/api`).
+6. Click **Deploy**.
