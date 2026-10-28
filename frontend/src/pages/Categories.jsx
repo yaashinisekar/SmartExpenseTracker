@@ -1,23 +1,31 @@
 import { useState, useEffect } from 'react';
 import api from '../services/api';
 import { toast } from 'react-toastify';
-import { PlusIcon, TrashIcon, PencilIcon, CheckIcon, XMarkIcon } from '@heroicons/react/24/outline';
+import {
+    PlusIcon,
+    TrashIcon,
+    PencilIcon,
+    CheckIcon,
+    XMarkIcon,
+    TagIcon,
+} from '@heroicons/react/24/outline';
 
-const ICONS = ['🍔','🚗','🏠','🎬','💊','📚','✈️','🛍️','💡','🎮','🐾','🎓','💼','💻','📈','🏦','💰','🏋️'];
+const ICONS = ['🍔','🚗','🏠','🎬','💊','📚','✈️','🛍️','💡','🎮','🐾','🎓','💼','💻','📈','🏦','💰','🏋️','☕','🛒'];
 
 const Categories = () => {
     const [categories, setCategories] = useState([]);
-    const [loading, setLoading]       = useState(true);
-    const [editingId, setEditingId]   = useState(null);
-    const [editName, setEditName]     = useState('');
-    const [editIcon, setEditIcon]     = useState('');
+    const [loading, setLoading] = useState(true);
+    const [editingId, setEditingId] = useState(null);
+    const [editName, setEditName] = useState('');
+    const [editIcon, setEditIcon] = useState('');
+    const [filterTab, setFilterTab] = useState('ALL'); // 'ALL' | 'EXPENSE' | 'INCOME'
 
     const [form, setForm] = useState({ name: '', type: 'EXPENSE', icon: '🍔' });
 
     const fetchCategories = async () => {
         try {
             const { data } = await api.get('/categories');
-            setCategories(data);
+            setCategories(data || []);
         } catch {
             toast.error('Failed to load categories');
         } finally {
@@ -25,14 +33,19 @@ const Categories = () => {
         }
     };
 
-    useEffect(() => { fetchCategories(); }, []);
+    useEffect(() => {
+        fetchCategories();
+    }, []);
 
     const handleAdd = async (e) => {
         e.preventDefault();
-        if (!form.name.trim()) { toast.error('Category name is required'); return; }
+        if (!form.name.trim()) {
+            toast.error('Category name is required');
+            return;
+        }
         try {
             await api.post('/categories', form);
-            toast.success('Category added! ✅');
+            toast.success('Category added successfully! ✅');
             setForm({ name: '', type: 'EXPENSE', icon: '🍔' });
             fetchCategories();
         } catch (err) {
@@ -46,10 +59,17 @@ const Categories = () => {
         setEditIcon(cat.icon || '🏷️');
     };
 
-    const cancelEdit = () => { setEditingId(null); setEditName(''); setEditIcon(''); };
+    const cancelEdit = () => {
+        setEditingId(null);
+        setEditName('');
+        setEditIcon('');
+    };
 
     const saveEdit = async (cat) => {
-        if (!editName.trim()) { toast.error('Name cannot be empty'); return; }
+        if (!editName.trim()) {
+            toast.error('Name cannot be empty');
+            return;
+        }
         try {
             await api.put(`/categories/${cat.id}`, { name: editName, type: cat.type, icon: editIcon });
             toast.success('Category updated!');
@@ -60,151 +80,261 @@ const Categories = () => {
         }
     };
 
-    const handleDelete = async (id) => {
-        if (!window.confirm('Delete this category? Transactions using it may be affected.')) return;
+    const handleDelete = async (id, name) => {
+        if (!window.confirm(`Delete category "${name}"? Linked records may be affected.`)) return;
         try {
             await api.delete(`/categories/${id}`);
             toast.success('Category deleted');
-            setCategories(prev => prev.filter(c => c.id !== id));
+            setCategories((prev) => prev.filter((c) => c.id !== id));
         } catch (err) {
             toast.error(err.response?.data?.error || 'Cannot delete this category');
         }
     };
 
-    const expense = categories.filter(c => c.type === 'EXPENSE');
-    const income  = categories.filter(c => c.type === 'INCOME');
+    const filteredCategories = categories.filter((c) => {
+        if (filterTab === 'ALL') return true;
+        return c.type === filterTab;
+    });
 
-    const CategoryCard = ({ cat }) => (
-        <div style={{
-            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-            padding: '14px 16px', borderRadius: 12,
-            background: 'rgba(255,255,255,0.025)',
-            border: '1px solid rgba(255,255,255,0.05)',
-            transition: 'all 0.2s ease',
-        }}>
-            {editingId === cat.id ? (
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8, flex: 1 }}>
-                    <select
-                        value={editIcon}
-                        onChange={e => setEditIcon(e.target.value)}
-                        style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 8, padding: '6px 8px', color: '#e2e8f0', fontSize: '1rem' }}
-                    >
-                        {ICONS.map(ic => <option key={ic} value={ic}>{ic}</option>)}
-                    </select>
-                    <input
-                        value={editName}
-                        onChange={e => setEditName(e.target.value)}
-                        className="input-dark"
-                        style={{ flex: 1, padding: '8px 12px' }}
-                        autoFocus
-                    />
-                    <button onClick={() => saveEdit(cat)} style={{ background: 'rgba(34,197,94,0.15)', border: '1px solid rgba(34,197,94,0.3)', borderRadius: 8, padding: '6px 10px', cursor: 'pointer', color: '#4ade80' }}>
-                        <CheckIcon style={{ width: 14, height: 14 }} />
-                    </button>
-                    <button onClick={cancelEdit} style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.2)', borderRadius: 8, padding: '6px 10px', cursor: 'pointer', color: '#f87171' }}>
-                        <XMarkIcon style={{ width: 14, height: 14 }} />
-                    </button>
-                </div>
-            ) : (
-                <>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                        <span style={{ fontSize: '1.4rem' }}>{cat.icon || '🏷️'}</span>
-                        <span style={{ fontSize: '0.9rem', fontWeight: 500, color: '#cbd5e1' }}>{cat.name}</span>
-                    </div>
-                    <div style={{ display: 'flex', gap: 6 }}>
-                        <button onClick={() => startEdit(cat)} style={{ background: 'rgba(56,189,248,0.1)', border: '1px solid rgba(56,189,248,0.2)', borderRadius: 8, padding: '5px 10px', cursor: 'pointer', color: '#38bdf8' }}>
-                            <PencilIcon style={{ width: 13, height: 13 }} />
-                        </button>
-                        <button onClick={() => handleDelete(cat.id)} className="btn-danger">
-                            <TrashIcon style={{ width: 13, height: 13 }} />
-                        </button>
-                    </div>
-                </>
-            )}
-        </div>
-    );
+    if (loading) {
+        return (
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '60vh', gap: 14 }}>
+                <div className="spinner" />
+                <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>Loading categories…</p>
+            </div>
+        );
+    }
 
     return (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+        <div style={{ maxWidth: 1240, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 26 }}>
             {/* Header */}
             <div>
-                <h1 className="section-header">Categories</h1>
-                <p style={{ color: '#475569', fontSize: '0.88rem', marginTop: 4 }}>
-                    Manage your income and expense categories
+                <h1 style={{ fontSize: '1.9rem', fontWeight: 800, color: 'var(--text-primary)', letterSpacing: '-0.02em', marginBottom: 4 }}>
+                    Financial Categories
+                </h1>
+                <p style={{ color: 'var(--text-secondary)', fontSize: '0.92rem' }}>
+                    Organize your incomes and expenses with custom icons and taxonomy.
                 </p>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) minmax(0,1.8fr)', gap: 20, alignItems: 'start' }} className="budget-grid">
-                {/* Add Form */}
-                <div className="glass-card" style={{ padding: 28 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 22 }}>
-                        <div style={{ width: 32, height: 32, borderRadius: 8, background: 'rgba(20,184,166,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                            <PlusIcon style={{ width: 16, height: 16, color: '#2dd4bf' }} />
+            {/* Grid Layout: Add Category (Left) and Category List (Right) */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(360px, 1fr))', gap: 24, alignItems: 'start' }}>
+                {/* Add Category Card */}
+                <div className="neu-card-flat" style={{ padding: 26, borderRadius: 20 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 20 }}>
+                        <div className="neu-icon-badge" style={{ width: 36, height: 36, background: 'rgba(16, 191, 174, 0.12)' }}>
+                            <TagIcon style={{ width: 18, height: 18, color: 'var(--brand-teal)' }} />
                         </div>
-                        <h2 style={{ fontSize: '0.95rem', fontWeight: 600, color: '#cbd5e1' }}>Add Category</h2>
+                        <div>
+                            <h2 style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--text-primary)' }}>
+                                Create New Category
+                            </h2>
+                            <p style={{ fontSize: '0.76rem', color: 'var(--text-muted)' }}>
+                                Add custom classification for your transactions
+                            </p>
+                        </div>
                     </div>
 
                     <form onSubmit={handleAdd} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                        {/* Name */}
                         <div>
-                            <label className="form-label">Type</label>
-                            <select id="cat-type" className="input-dark" value={form.type} onChange={e => setForm({ ...form, type: e.target.value })}>
-                                <option value="EXPENSE">Expense</option>
-                                <option value="INCOME">Income</option>
-                            </select>
+                            <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: 6 }}>
+                                Category Name *
+                            </label>
+                            <input
+                                id="cat-name"
+                                type="text"
+                                required
+                                className="neu-input"
+                                placeholder="e.g. Groceries, Streaming, Freelance"
+                                value={form.name}
+                                onChange={(e) => setForm({ ...form, name: e.target.value })}
+                            />
                         </div>
+
+                        {/* Type Toggle */}
                         <div>
-                            <label className="form-label">Name</label>
-                            <input id="cat-name" type="text" required className="input-dark" placeholder="e.g. Groceries" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} />
+                            <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: 6 }}>
+                                Transaction Type *
+                            </label>
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+                                <button
+                                    type="button"
+                                    onClick={() => setForm({ ...form, type: 'EXPENSE' })}
+                                    style={{
+                                        padding: '10px 14px',
+                                        borderRadius: 12,
+                                        border: form.type === 'EXPENSE' ? '1px solid var(--accent-danger)' : '1px solid var(--border-subtle)',
+                                        background: form.type === 'EXPENSE' ? 'rgba(241, 91, 121, 0.12)' : 'var(--bg-surface-secondary)',
+                                        color: form.type === 'EXPENSE' ? 'var(--accent-danger)' : 'var(--text-secondary)',
+                                        fontWeight: 700,
+                                        fontSize: '0.82rem',
+                                        cursor: 'pointer',
+                                    }}
+                                >
+                                    Expense
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => setForm({ ...form, type: 'INCOME' })}
+                                    style={{
+                                        padding: '10px 14px',
+                                        borderRadius: 12,
+                                        border: form.type === 'INCOME' ? '1px solid var(--accent-mint)' : '1px solid var(--border-subtle)',
+                                        background: form.type === 'INCOME' ? 'rgba(16, 167, 122, 0.12)' : 'var(--bg-surface-secondary)',
+                                        color: form.type === 'INCOME' ? 'var(--accent-mint)' : 'var(--text-secondary)',
+                                        fontWeight: 700,
+                                        fontSize: '0.82rem',
+                                        cursor: 'pointer',
+                                    }}
+                                >
+                                    Income
+                                </button>
+                            </div>
                         </div>
+
+                        {/* Icon Picker */}
                         <div>
-                            <label className="form-label">Icon</label>
-                            <select id="cat-icon" className="input-dark" value={form.icon} onChange={e => setForm({ ...form, icon: e.target.value })}>
-                                {ICONS.map(ic => <option key={ic} value={ic}>{ic} {ic}</option>)}
-                            </select>
+                            <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: 6 }}>
+                                Select Icon: <span style={{ fontSize: '1rem', marginLeft: 4 }}>{form.icon}</span>
+                            </label>
+                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 6, maxHeight: 130, overflowY: 'auto', padding: 8, background: 'var(--bg-surface-secondary)', borderRadius: 12, border: '1px solid var(--border-subtle)' }}>
+                                {ICONS.map((emoji) => (
+                                    <button
+                                        key={emoji}
+                                        type="button"
+                                        onClick={() => setForm({ ...form, icon: emoji })}
+                                        style={{
+                                            fontSize: '1.2rem',
+                                            padding: 6,
+                                            borderRadius: 8,
+                                            border: 'none',
+                                            background: form.icon === emoji ? 'var(--brand-gradient)' : 'transparent',
+                                            cursor: 'pointer',
+                                            transition: 'transform 0.15s',
+                                        }}
+                                    >
+                                        {emoji}
+                                    </button>
+                                ))}
+                            </div>
                         </div>
-                        <button id="cat-submit" type="submit" className="btn-primary" style={{ width: '100%' }}>
-                            <PlusIcon style={{ width: 15, height: 15 }} />
-                            Add Category
+
+                        <button id="cat-submit" type="submit" className="neu-btn-primary" style={{ marginTop: 6 }}>
+                            <PlusIcon style={{ width: 16, height: 16 }} />
+                            Save Category
                         </button>
                     </form>
                 </div>
 
-                {/* Category Lists */}
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-                    {/* Expense */}
-                    <div className="glass-card" style={{ padding: 24 }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>
-                            <span style={{ fontSize: '1.1rem' }}>💸</span>
-                            <h2 style={{ fontSize: '0.95rem', fontWeight: 600, color: '#f87171' }}>Expense Categories</h2>
-                            <span style={{ marginLeft: 'auto', fontSize: '0.75rem', background: 'rgba(239,68,68,0.1)', color: '#f87171', border: '1px solid rgba(239,68,68,0.2)', borderRadius: 20, padding: '2px 10px' }}>{expense.length}</span>
+                {/* Categories List (Right) */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                    {/* Filter Tabs */}
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 10 }}>
+                        <h2 style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--text-primary)' }}>
+                            Active Categories ({categories.length})
+                        </h2>
+                        <div style={{ display: 'flex', gap: 6, background: 'var(--bg-surface-secondary)', padding: 4, borderRadius: 12, border: '1px solid var(--border-subtle)' }}>
+                            {['ALL', 'EXPENSE', 'INCOME'].map((tab) => (
+                                <button
+                                    key={tab}
+                                    onClick={() => setFilterTab(tab)}
+                                    style={{
+                                        padding: '5px 12px',
+                                        borderRadius: 8,
+                                        fontSize: '0.75rem',
+                                        fontWeight: 600,
+                                        cursor: 'pointer',
+                                        border: 'none',
+                                        background: filterTab === tab ? 'var(--brand-gradient)' : 'transparent',
+                                        color: filterTab === tab ? '#FFFFFF' : 'var(--text-secondary)',
+                                    }}
+                                >
+                                    {tab}
+                                </button>
+                            ))}
                         </div>
-                        {loading ? (
-                            <div style={{ display: 'flex', justifyContent: 'center', padding: 24 }}><div className="spinner" /></div>
-                        ) : expense.length === 0 ? (
-                            <p style={{ color: '#334155', textAlign: 'center', padding: '24px 0', fontSize: '0.85rem' }}>No expense categories yet</p>
-                        ) : (
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                                {expense.map(cat => <CategoryCard key={cat.id} cat={cat} />)}
-                            </div>
-                        )}
                     </div>
 
-                    {/* Income */}
-                    <div className="glass-card" style={{ padding: 24 }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>
-                            <span style={{ fontSize: '1.1rem' }}>💰</span>
-                            <h2 style={{ fontSize: '0.95rem', fontWeight: 600, color: '#4ade80' }}>Income Categories</h2>
-                            <span style={{ marginLeft: 'auto', fontSize: '0.75rem', background: 'rgba(34,197,94,0.1)', color: '#4ade80', border: '1px solid rgba(34,197,94,0.2)', borderRadius: 20, padding: '2px 10px' }}>{income.length}</span>
-                        </div>
-                        {loading ? (
-                            <div style={{ display: 'flex', justifyContent: 'center', padding: 24 }}><div className="spinner" /></div>
-                        ) : income.length === 0 ? (
-                            <p style={{ color: '#334155', textAlign: 'center', padding: '24px 0', fontSize: '0.85rem' }}>No income categories yet</p>
-                        ) : (
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                                {income.map(cat => <CategoryCard key={cat.id} cat={cat} />)}
-                            </div>
-                        )}
+                    {/* Cards Grid */}
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: 12 }}>
+                        {filteredCategories.map((cat) => {
+                            const isEditing = editingId === cat.id;
+
+                            if (isEditing) {
+                                return (
+                                    <div key={cat.id} className="neu-card" style={{ padding: 14, borderRadius: 14 }}>
+                                        <div style={{ display: 'flex', gap: 6, marginBottom: 8 }}>
+                                            <input
+                                                type="text"
+                                                className="neu-input"
+                                                style={{ width: 44, textAlign: 'center', padding: '6px' }}
+                                                value={editIcon}
+                                                onChange={(e) => setEditIcon(e.target.value)}
+                                            />
+                                            <input
+                                                type="text"
+                                                className="neu-input"
+                                                style={{ flex: 1, padding: '6px 10px' }}
+                                                value={editName}
+                                                onChange={(e) => setEditName(e.target.value)}
+                                            />
+                                        </div>
+                                        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 6 }}>
+                                            <button
+                                                onClick={() => saveEdit(cat)}
+                                                className="neu-btn-primary"
+                                                style={{ padding: '6px 12px', fontSize: '0.75rem' }}
+                                            >
+                                                <CheckIcon style={{ width: 14, height: 14 }} /> Save
+                                            </button>
+                                            <button
+                                                onClick={cancelEdit}
+                                                className="neu-btn-secondary"
+                                                style={{ padding: '6px 10px', fontSize: '0.75rem' }}
+                                            >
+                                                <XMarkIcon style={{ width: 14, height: 14 }} />
+                                            </button>
+                                        </div>
+                                    </div>
+                                );
+                            }
+
+                            return (
+                                <div key={cat.id} className="neu-card" style={{ padding: '14px 16px', borderRadius: 16, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0 }}>
+                                        <span style={{ fontSize: '1.35rem', flexShrink: 0 }}>{cat.icon || '🏷️'}</span>
+                                        <div style={{ overflow: 'hidden' }}>
+                                            <span style={{ fontWeight: 700, fontSize: '0.9rem', color: 'var(--text-primary)', display: 'block', textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}>
+                                                {cat.name}
+                                            </span>
+                                            <span className={`neu-badge ${cat.type === 'INCOME' ? 'neu-badge-success' : 'neu-badge-danger'}`} style={{ fontSize: '0.62rem', padding: '2px 6px', marginTop: 2 }}>
+                                                {cat.type}
+                                            </span>
+                                        </div>
+                                    </div>
+
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                                        <button
+                                            onClick={() => startEdit(cat)}
+                                            className="neu-btn-secondary"
+                                            style={{ padding: '6px 8px', borderRadius: 8 }}
+                                            title="Edit category"
+                                        >
+                                            <PencilIcon style={{ width: 13, height: 13 }} />
+                                        </button>
+                                        <button
+                                            onClick={() => handleDelete(cat.id, cat.name)}
+                                            className="neu-btn-danger"
+                                            style={{ padding: '6px 8px', borderRadius: 8 }}
+                                            title="Delete category"
+                                        >
+                                            <TrashIcon style={{ width: 13, height: 13 }} />
+                                        </button>
+                                    </div>
+                                </div>
+                            );
+                        })}
                     </div>
                 </div>
             </div>

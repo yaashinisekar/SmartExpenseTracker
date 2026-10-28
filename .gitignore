@@ -19,3 +19,17 @@ mvnw.cmd
 # OS
 .DS_Store
 Thumbs.db
+
+# Agent and IDE metadata
+.agent/
+.agents/
+.gemini/
+.gsd/
+GSD-STYLE.md
+PROJECT_RULES.md
+VERSION
+adapters/
+model_capabilities.yaml
+scripts/
+
+

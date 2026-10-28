@@ -1,15 +1,28 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import useAuthStore from '../store/authStore';
+import useThemeStore from '../store/themeStore';
 import { toast } from 'react-toastify';
-import { EnvelopeIcon, LockClosedIcon, UserIcon, CurrencyDollarIcon } from '@heroicons/react/24/outline';
+import {
+    EnvelopeIcon,
+    LockClosedIcon,
+    UserIcon,
+    CurrencyDollarIcon,
+    SunIcon,
+    MoonIcon,
+} from '@heroicons/react/24/outline';
 
 const Register = () => {
     const [formData, setFormData] = useState({
-        firstName: '', lastName: '', email: '', password: ''
+        firstName: '',
+        lastName: '',
+        email: '',
+        password: '',
     });
     const { register, loading } = useAuthStore();
-    const navigate              = useNavigate();
+    const theme = useThemeStore((s) => s.theme);
+    const toggleTheme = useThemeStore((s) => s.toggleTheme);
+    const navigate = useNavigate();
 
     const handleChange = (e) =>
         setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -26,77 +39,102 @@ const Register = () => {
     };
 
     return (
-        <div className="auth-bg" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px', minHeight: '100vh' }}>
-            {/* Decorative blobs */}
-            <div style={{
-                position: 'fixed', top: '15%', right: '8%', width: 350, height: 350,
-                background: 'radial-gradient(circle, rgba(20,184,166,0.1) 0%, transparent 70%)',
-                borderRadius: '50%', pointerEvents: 'none',
-            }} />
-            <div style={{
-                position: 'fixed', bottom: '15%', left: '5%', width: 250, height: 250,
-                background: 'radial-gradient(circle, rgba(139,92,246,0.08) 0%, transparent 70%)',
-                borderRadius: '50%', pointerEvents: 'none',
-            }} />
+        <div
+            style={{
+                minHeight: '100vh',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                padding: '24px',
+                background: 'var(--bg-app)',
+                position: 'relative',
+            }}
+            className="theme-transition"
+        >
+            {/* Top Right Theme Toggle */}
+            <div style={{ position: 'absolute', top: 20, right: 24 }}>
+                <button
+                    onClick={toggleTheme}
+                    className="neu-btn-secondary"
+                    style={{ padding: '8px 14px', borderRadius: 12, fontSize: '0.82rem' }}
+                    title="Toggle Theme"
+                >
+                    {theme === 'light' ? (
+                        <>
+                            <MoonIcon style={{ width: 16, height: 16, color: '#58739D' }} />
+                            <span>Dark</span>
+                        </>
+                    ) : (
+                        <>
+                            <SunIcon style={{ width: 16, height: 16, color: '#f59e0b' }} />
+                            <span>Light</span>
+                        </>
+                    )}
+                </button>
+            </div>
 
-            <div className="animate-fade-in-up" style={{ width: '100%', maxWidth: 440, position: 'relative', zIndex: 1 }}>
-                {/* Header */}
-                <div style={{ textAlign: 'center', marginBottom: 32 }}>
-                    <div style={{
-                        display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-                        width: 56, height: 56, borderRadius: 16,
-                        background: 'linear-gradient(135deg, #14b8a6, #0891b2)',
-                        boxShadow: '0 8px 32px rgba(20,184,166,0.4)',
-                        marginBottom: 16,
-                    }}>
-                        <CurrencyDollarIcon style={{ width: 28, height: 28, color: '#fff' }} />
+            <div className="animate-fade-in-up" style={{ width: '100%', maxWidth: 440 }}>
+                {/* Header Branding */}
+                <div style={{ textAlign: 'center', marginBottom: 28 }}>
+                    <div
+                        className="neu-icon-badge"
+                        style={{
+                            width: 58,
+                            height: 58,
+                            borderRadius: 18,
+                            background: 'var(--brand-gradient)',
+                            boxShadow: '0 8px 24px rgba(16, 191, 174, 0.4)',
+                            margin: '0 auto 16px',
+                        }}
+                    >
+                        <CurrencyDollarIcon style={{ width: 32, height: 32, color: '#FFFFFF' }} />
                     </div>
-                    <h1 style={{
-                        fontFamily: "'Outfit', sans-serif",
-                        fontSize: '1.8rem', fontWeight: 800,
-                        color: '#f1f5f9', letterSpacing: '-0.02em', marginBottom: 6,
-                    }}>
-                        Create your account
+                    <h1 style={{ fontSize: '1.9rem', fontWeight: 800, color: 'var(--text-primary)', letterSpacing: '-0.02em', marginBottom: 4 }}>
+                        Create Your Account
                     </h1>
-                    <p style={{ color: '#64748b', fontSize: '0.9rem' }}>
-                        Start tracking your finances today — it's free
+                    <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
+                        Start tracking your wealth with soft neumorphic precision
                     </p>
                 </div>
 
-                {/* Card */}
-                <div className="glass-panel" style={{ borderRadius: 20, padding: 36 }}>
-                    <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
-                        {/* Name row */}
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
+                {/* Soft Neumorphic Card */}
+                <div className="neu-card" style={{ padding: 36, borderRadius: 24 }}>
+                    <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                        {/* Name Row */}
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
                             <div>
-                                <label className="form-label">First Name</label>
+                                <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: 6 }}>
+                                    First Name
+                                </label>
                                 <div style={{ position: 'relative' }}>
-                                    <UserIcon style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', width: 15, height: 15, color: '#475569' }} />
+                                    <UserIcon style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', width: 15, height: 15, color: 'var(--text-muted)' }} />
                                     <input
                                         id="reg-firstname"
                                         type="text"
                                         name="firstName"
                                         required
-                                        className="input-dark"
+                                        className="neu-input"
                                         placeholder="John"
-                                        style={{ paddingLeft: 36 }}
+                                        style={{ paddingLeft: 34 }}
                                         value={formData.firstName}
                                         onChange={handleChange}
                                     />
                                 </div>
                             </div>
                             <div>
-                                <label className="form-label">Last Name</label>
+                                <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: 6 }}>
+                                    Last Name
+                                </label>
                                 <div style={{ position: 'relative' }}>
-                                    <UserIcon style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', width: 15, height: 15, color: '#475569' }} />
+                                    <UserIcon style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', width: 15, height: 15, color: 'var(--text-muted)' }} />
                                     <input
                                         id="reg-lastname"
                                         type="text"
                                         name="lastName"
                                         required
-                                        className="input-dark"
+                                        className="neu-input"
                                         placeholder="Doe"
-                                        style={{ paddingLeft: 36 }}
+                                        style={{ paddingLeft: 34 }}
                                         value={formData.lastName}
                                         onChange={handleChange}
                                     />
@@ -106,15 +144,17 @@ const Register = () => {
 
                         {/* Email */}
                         <div>
-                            <label className="form-label">Email Address</label>
+                            <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: 6 }}>
+                                Email Address
+                            </label>
                             <div style={{ position: 'relative' }}>
-                                <EnvelopeIcon style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', width: 16, height: 16, color: '#475569' }} />
+                                <EnvelopeIcon style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', width: 16, height: 16, color: 'var(--text-muted)' }} />
                                 <input
                                     id="reg-email"
                                     type="email"
                                     name="email"
                                     required
-                                    className="input-dark"
+                                    className="neu-input"
                                     placeholder="you@example.com"
                                     style={{ paddingLeft: 40 }}
                                     value={formData.email}
@@ -125,17 +165,18 @@ const Register = () => {
 
                         {/* Password */}
                         <div>
-                            <label className="form-label">Password</label>
+                            <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: 6 }}>
+                                Password
+                            </label>
                             <div style={{ position: 'relative' }}>
-                                <LockClosedIcon style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', width: 16, height: 16, color: '#475569' }} />
+                                <LockClosedIcon style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', width: 16, height: 16, color: 'var(--text-muted)' }} />
                                 <input
                                     id="reg-password"
                                     type="password"
                                     name="password"
                                     required
-                                    minLength={6}
-                                    className="input-dark"
-                                    placeholder="Min. 6 characters"
+                                    className="neu-input"
+                                    placeholder="••••••••"
                                     style={{ paddingLeft: 40 }}
                                     value={formData.password}
                                     onChange={handleChange}
@@ -143,34 +184,35 @@ const Register = () => {
                             </div>
                         </div>
 
-                        {/* Submit */}
+                        {/* Submit Button */}
                         <button
                             id="reg-submit"
                             type="submit"
                             disabled={loading}
-                            className="btn-primary"
-                            style={{ width: '100%', marginTop: 4, fontSize: '0.95rem', padding: '14px' }}
+                            className="neu-btn-primary"
+                            style={{ width: '100%', marginTop: 8, padding: '13px', fontSize: '0.92rem' }}
                         >
                             {loading ? (
-                                <>
+                                <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                                     <div className="spinner" style={{ width: 16, height: 16, borderWidth: 2 }} />
-                                    Creating Account…
-                                </>
-                            ) : 'Create Account'}
+                                    Creating account…
+                                </span>
+                            ) : (
+                                'Create Free Account'
+                            )}
                         </button>
                     </form>
 
-                    {/* Divider */}
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 12, margin: '24px 0' }}>
-                        <div style={{ flex: 1, height: 1, background: 'rgba(255,255,255,0.06)' }} />
-                        <span style={{ color: '#334155', fontSize: '0.8rem' }}>or</span>
-                        <div style={{ flex: 1, height: 1, background: 'rgba(255,255,255,0.06)' }} />
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 12, margin: '22px 0' }}>
+                        <div style={{ flex: 1, height: 1, background: 'var(--border-subtle)' }} />
+                        <span style={{ color: 'var(--text-muted)', fontSize: '0.78rem' }}>or</span>
+                        <div style={{ flex: 1, height: 1, background: 'var(--border-subtle)' }} />
                     </div>
 
-                    <p style={{ textAlign: 'center', color: '#64748b', fontSize: '0.88rem' }}>
+                    <p style={{ textAlign: 'center', color: 'var(--text-secondary)', fontSize: '0.86rem' }}>
                         Already have an account?{' '}
-                        <Link to="/login" style={{ color: '#2dd4bf', fontWeight: 600, textDecoration: 'none' }}>
-                            Sign in →
+                        <Link to="/login" style={{ color: 'var(--brand-teal)', fontWeight: 700, textDecoration: 'none' }}>
+                            Sign in here →
                         </Link>
                     </p>
                 </div>

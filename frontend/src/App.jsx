@@ -13,6 +13,7 @@ import Dashboard from './pages/Dashboard';
 import Transactions from './pages/Transactions';
 import Budgets from './pages/Budgets';
 import Categories from './pages/Categories';
+import LifeLens from './pages/LifeLens';
 import NotFound from './pages/NotFound';
 
 const ProtectedRoute = ({ children }) => {
@@ -34,6 +35,7 @@ function App() {
           <Route path="transactions" element={<Transactions />} />
           <Route path="budgets" element={<Budgets />} />
           <Route path="categories" element={<Categories />} />
+          <Route path="lifelens" element={<LifeLens />} />
           <Route path="*" element={<NotFound />} />
         </Route>
       </Routes>
